@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Patient {{patient_fio}}</title>
+</head>
+<body>
+    <h2>
+        <a href="{% url user_role %}">Back to main... </a>
+        {% if back_to_cards %}
+        <br/>
+        <a href="{% url 'cards' %}">Back to all cards... </a>
+        {% endif %}
+    </h2>
+    <br/>
+
+    <h1>Card of patient : {{patient_fio}} </h1>
+    {% for item in diseases %}
+        Disease name : {{ item.name }}<br/>
+        Added at : {{ item.discovered_at }}<br/>
+        <a href="{% url 'disease' user_id=patient_id disease_id=item.id%}">More info</a>
+    <br/>
+    <hr/>
+    {% endfor %}
+
+</body>
+</html>

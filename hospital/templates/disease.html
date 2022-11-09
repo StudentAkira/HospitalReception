@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Disease</title>
+</head>
+<body>
+    <h2>
+        <a href="{% url 'card' user_id=user_id %}">Back to all diseases... </a><br/>
+        <a href="{% url user_role %}">Back to main... </a>
+    </h2><br/>
+    <h2>Disease : {{ disease.name }}</h2>
+    <p>Description : {{ disease.description }}</p>
+    <p>Drugs appointed : {{ disease.drugs }}</p>
+    <p>Recommendations appointed : {{ disease.recommendations }}</p>
+    <p>Admission status {{ disease.status }}</p>
+    <p>Discovered at {{ disease.discovered_at }}</p>
+</body>
+</html>

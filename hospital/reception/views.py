@@ -1,10 +1,11 @@
-from django.contrib.auth import logout, login
-from django.contrib.auth.hashers import check_password
+from django.contrib.auth import logout
+from django.core.exceptions import ValidationError
 from django.shortcuts import render, redirect
 
-from .models import CustomUser
-from .permissions import access_permission_role, unauthorized, authorized
+from .models import CustomUser, MedicalCard, Disease
+from .permissions import access_permission_role, unauthorized, authorized, card_owner_or_doctor
 from .forms import RegisterForm, LoginForm
+from .services import CreateUserService, LoginUserService, MedicalCardContentService, ManyMedicalCardsService
 
 
 @authorized
@@ -19,35 +20,18 @@ def register_view(request):
         form = RegisterForm()
         return render(template_name='register.html',
                       request=request,
-                      context={"form": form, "message": "Register"}
-                      )
+                      context={"form": form, "message": "Register"})
     if request.method == 'POST':
-        data = request.POST
-        username = data.get('username', None)
-        password = data.get('password', None)
-        fio = data.get('fio', None)
-        role = data.get('role', None)
-        all_data_gotten = username and password and fio and role
-        if not all_data_gotten:
+        form = RegisterForm(request.POST)
+        try:
+            CreateUserService(form).create_user()
+            return redirect('/login')
+        except ValidationError:
+            username = form.data.dict()['username']
             form = RegisterForm()
             return render(template_name='register.html',
                           request=request,
-                          context={"form": form, "message": f"Invalid data"})
-
-        username_taken = CustomUser.objects.filter(username=username).count()
-        if username_taken:
-            form = RegisterForm()
-            return render(template_name='register.html',
-                          request=request,
-                          context={"form": form, "message": f"Name {username} is already taken"})
-
-        CustomUser.objects.create_user(
-            username=username,
-            password=password,
-            fio=fio,
-            role=role,
-        )
-        return redirect('/login')
+                          context={'form': form, 'message': f'Username {username} taken'})
 
 
 @unauthorized
@@ -59,41 +43,95 @@ def login_view(request):
                       context={"form": form, "message": "Login"})
 
     if request.method == 'POST':
-        form = LoginForm()
-        data = request.POST
-        username = data.get('username', None)
-        password = data.get('password', None)
-        if not password or not username:
+        form = LoginForm(request.POST)
+        try:
+            service = LoginUserService(form)
+            user = service.log_in(request)
+            return redirect(f'/{user.role}'.lower())
+        except ValidationError:
+            form = LoginForm()
             return render(template_name='login.html',
                           request=request,
-                          context={"form": form, "message": "Invalid data"})
-        user = CustomUser.objects.filter(username=username)
-        if not user.exists():
-            return render(template_name='login.html',
-                          request=request,
-                          context={"form": form, "message": "No such user"})
-        user = user.get()
-        password_correct = check_password(password, user.password)
-        if password_correct:
-            login(request, user)
-            return redirect(user.role.lower())
-
-        return render(template_name='login.html',
-                      request=request,
-                      context={"form": form, "message": "Invalid password"})
+                          context={"form": form, "message": "Invalid password or username"})
 
 
 @authorized
-@access_permission_role('Doctor')
+@access_permission_role(CustomUser.RoleChoices.DOCTOR)
 def doctor_view(request):
     if request.method == 'GET':
         return render(template_name='doctor.html', request=request)
 
 
 @authorized
-@access_permission_role('Patient')
+@access_permission_role(CustomUser.RoleChoices.PATIENT)
 def patient_view(request):
     if request.method == 'GET':
-        return render(template_name='patient.html', request=request)
+        return render(
+            template_name='patient.html',
+            request=request,
+            context={'patient_id': request.user.id}
+        )
+
+
+@authorized
+@access_permission_role(CustomUser.RoleChoices.DOCTOR)
+def many_cards_view(request):
+    if request.method == 'GET':
+        print(request.GET)
+        service = ManyMedicalCardsService(request.user, True)
+        card_info_items = service.get_cards_info()
+        return render(
+            template_name='cards.html',
+            request=request,
+            context={
+                'user_role': request.user.role,
+                'card_info_items': card_info_items,
+            }
+        )
+
+
+@authorized
+@card_owner_or_doctor
+def card_content_view(request, user_id):
+    if request.method == 'GET':
+        try:
+            user = CustomUser.objects.get(id=user_id)
+            service = MedicalCardContentService(user)
+            diseases = service.get_diseases_short_data()
+            return render(
+                template_name='card.html',
+                request=request,
+                context={
+                    'patient_fio': user.fio,
+                    'patient_id': user.id,
+                    'user_role': request.user.role,
+                    'back_to_cards': request.user.role == CustomUser.RoleChoices.DOCTOR,
+                    'diseases': diseases,
+                }
+            )
+        except (MedicalCard.DoesNotExist, CustomUser.DoesNotExist):
+            return redirect(f'{request.user.role.lower()}')
+
+
+@authorized
+@card_owner_or_doctor
+def disease_view(request, user_id, disease_id):
+    if request.method == 'GET':
+        try:
+            user = CustomUser.objects.get(id=user_id)
+            service = MedicalCardContentService(user)
+            disease = service.get_full_disease(disease_id)
+            return render(
+                template_name='disease.html',
+                request=request,
+                context={
+                    'disease': disease,
+                    'user_id': user.id,
+                    'user_role': request.user.role,
+                },
+            )
+        except (MedicalCard.DoesNotExist, CustomUser.DoesNotExist, Disease.DoesNotExist):
+            return redirect(f'{request.user.role.lower()}')
+
 
 

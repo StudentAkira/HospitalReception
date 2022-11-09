@@ -1,3 +1,6 @@
-from django.test import TestCase
+def f(*args, **kwargs):
+    print(args)
+    print(kwargs)
 
-# Create your tests here.
+
+f(a='a', b='b')

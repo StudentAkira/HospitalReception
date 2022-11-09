@@ -6,6 +6,7 @@
 </head>
 <body>
     <h1>PATIENT PAGE</h1>
-    <h2><a href="/logout">Logut</a></h2>
+    <h2><a href="{% url 'logout' %}">Logut</a></h2>
+    <h2><a href="{% url 'card' user_id=patient_id %}">My Card</a></h2>
 </body>
 </html>
