@@ -4,8 +4,9 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.db.models import Count
 
+from reception.filters import PatientFilter
 from reception.forms import RegisterForm, LoginForm
-from reception.models import CustomUser, MedicalCard, Disease, Ticket
+from reception.models import CustomUser, MedicalCard, Disease
 
 
 class ProcessUserInterface:
@@ -79,16 +80,16 @@ class MedicalCardContentService:
 
 
 class ManyMedicalCardsService:
-    def __init__(self, doctor: CustomUser, only_appointed: bool):
-        if not only_appointed:
-            self._cards_info = CustomUser.objects.filter(role=CustomUser.RoleChoices.PATIENT).\
-                annotate(disease_count=Count('card_owner__medical_card')).values('fio', 'id', 'disease_count')
-        else:
-            self._cards_info = CustomUser.objects.prefetch_related('ticket_owner')\
-                .filter(ticket_owner__target=doctor)\
-                .annotate(disease_count=Count('card_owner__medical_card'))\
-                .values('fio', 'id', 'disease_count')
+    def __init__(self, request):
 
+        self.patient_filtrator = PatientFilter(
+            request.GET,
+            queryset=CustomUser.objects.prefetch_related('card_owner').
+                filter(role=CustomUser.RoleChoices.PATIENT).
+                annotate(disease_count=Count('card_owner__medical_card')),
+            request=request,
+        )
+        self._cards_info = self.patient_filtrator.qs.values('fio', 'id', 'disease_count')
 
     def get_cards_info(self) -> list:
         return [{
@@ -96,7 +97,7 @@ class ManyMedicalCardsService:
             'owner_id': owner_card['id'],
             'amount_of_diseases': owner_card['disease_count']
         }
-                for owner_card in self._cards_info]
+            for owner_card in self._cards_info]
 
 
 class TmpService:

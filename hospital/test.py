@@ -1,16 +1,6 @@
-def outer(func):
-    def inner(role):
-        print("Befor func ")
-        func()
-        print(f"Role ::{role}")
-        print("After func ")
-    return inner
+def f(*args, **kwargs):
+    print(args)
+    print(kwargs)
 
 
-@outer
-def hi():
-    print('hi')
-
-
-hi('role')
-print(1)
+f(a='a', b='b')

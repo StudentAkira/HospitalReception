@@ -2,6 +2,7 @@ from django.contrib.auth import logout
 from django.core.exceptions import ValidationError
 from django.shortcuts import render, redirect
 
+from .filters import PatientFilter
 from .models import CustomUser, MedicalCard, Disease
 from .permissions import access_permission_role, unauthorized, authorized, card_owner_or_doctor
 from .forms import RegisterForm, LoginForm
@@ -73,12 +74,13 @@ def patient_view(request):
         )
 
 
+
 @authorized
 @access_permission_role(CustomUser.RoleChoices.DOCTOR)
 def many_cards_view(request):
     if request.method == 'GET':
-        print(request.GET)
-        service = ManyMedicalCardsService(request.user, True)
+        service = ManyMedicalCardsService(request)
+        filtrator = service.patient_filtrator
         card_info_items = service.get_cards_info()
         return render(
             template_name='cards.html',
@@ -86,6 +88,7 @@ def many_cards_view(request):
             context={
                 'user_role': request.user.role,
                 'card_info_items': card_info_items,
+                'filter': filtrator,
             }
         )
 
@@ -132,6 +135,4 @@ def disease_view(request, user_id, disease_id):
             )
         except (MedicalCard.DoesNotExist, CustomUser.DoesNotExist, Disease.DoesNotExist):
             return redirect(f'{request.user.role.lower()}')
-
-
 

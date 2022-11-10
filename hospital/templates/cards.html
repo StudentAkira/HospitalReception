@@ -8,17 +8,20 @@
     <h2>
         <a href="{% url user_role %}">Back to main... </a>
     </h2>
-    <form action="" method="get">
-            <input type="checkbox" value="false">
-            <button>apply</button>
-        <form/>
+    {% block content %}
+        <form method="get">
+            {{ filter.form.as_p }}
+            <input type="submit" />
+        </form>
+    {% endblock %}
     <br/>
     {% for item in card_info_items %}
         Patient FIO :: {{ item.fio }}<br/>
         Diseases :: {{ item.amount_of_diseases }}<br/>
         <a href="{% url 'card' user_id=item.owner_id %}"> More </a><br/>
-    <br/>
-    <hr/>
+        <br/>
+        <hr/>
     {% endfor %}
+    <br/>
 </body>
 </html>
