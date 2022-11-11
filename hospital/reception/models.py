@@ -5,9 +5,18 @@ from datetime import datetime
 
 
 class Ticket(models.Model):
+
+    class TicketTimeChoices(models.TextChoices):
+        FULL = 30, 'Full receipt'
+        FAST = 15, 'fast receipt receipt'
+
     owner = models.ForeignKey("CustomUser", on_delete=models.CASCADE, related_name="ticket_owner")
     target = models.ForeignKey("CustomUser", on_delete=models.CASCADE, related_name="ticket_target")
     receipt_time = models.DateTimeField(default=datetime.now())
+    receipt_type = models.IntegerField(
+        choices=TicketTimeChoices.choices,
+        default=TicketTimeChoices.FAST,
+    )
     objects = models.Manager()
 
 
@@ -51,4 +60,5 @@ class CustomUser(AbstractUser):
     username = models.CharField(max_length=127, unique=True)
     fio = models.CharField(max_length=127)
     role = models.CharField(max_length=25, choices=RoleChoices.choices)
+
     objects = CustomUserManager()

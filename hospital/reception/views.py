@@ -6,7 +6,8 @@ from .filters import PatientFilter
 from .models import CustomUser, MedicalCard, Disease
 from .permissions import access_permission_role, unauthorized, authorized, card_owner_or_doctor
 from .forms import RegisterForm, LoginForm
-from .services import CreateUserService, LoginUserService, MedicalCardContentService, ManyMedicalCardsService
+from .services import CreateUserService, LoginUserService, MedicalCardContentService, ManyMedicalCardsService, \
+    DoctorService, AppointmentDateTimeServoce
 
 
 @authorized
@@ -136,3 +137,34 @@ def disease_view(request, user_id, disease_id):
         except (MedicalCard.DoesNotExist, CustomUser.DoesNotExist, Disease.DoesNotExist):
             return redirect(f'{request.user.role.lower()}')
 
+
+@authorized
+@access_permission_role(CustomUser.RoleChoices.PATIENT)
+def select_doctor_view(request):
+    if request.method == 'GET':
+        service = DoctorService(request)
+        doctors = service.get_all()
+        return render(
+            template_name='appointment.html',
+            request=request,
+            context={
+                'user_role': request.user.role,
+                'doctors': doctors,
+            }
+        )
+
+
+@authorized
+@access_permission_role(CustomUser.RoleChoices.PATIENT)
+def select_datetime_view(request, doctor_id):
+    if request.method == 'GET':
+        service = AppointmentDateTimeServoce(doctor_id)
+        doctors_fio = service.get_all()
+        return render(
+            template_name='appointment.html',
+            request=request,
+            context={
+                'user_role': request.user.role,
+                'doctors_fio': doctors_fio,
+            }
+        )

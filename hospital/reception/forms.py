@@ -3,6 +3,8 @@ from reception.models import CustomUser
 
 
 class RegisterForm(forms.ModelForm):
+    password = forms.CharField(required=True, widget=forms.PasswordInput())
+
     class Meta:
         model = CustomUser
         fields = '__all__'

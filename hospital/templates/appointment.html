@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Get Ticket</title>
+</head>
+<body>
+    <h2>
+        <a href="{% url user_role %}">Back to main... </a>
+    </h2>
+    {% for doctor in doctors %}
+        Fio :: {{ doctor.fio }}<br/>
+        <a href="{% url 'select_datetime' doctor_id=doctor.id %}">Chose date/time</a>
+        <br/>
+        <hr/>
+    {% endfor %}
+</body>
+</html>

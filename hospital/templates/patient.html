@@ -6,7 +6,11 @@
 </head>
 <body>
     <h1>PATIENT PAGE</h1>
-    <h2><a href="{% url 'logout' %}">Logut</a></h2>
-    <h2><a href="{% url 'card' user_id=patient_id %}">My Card</a></h2>
+    <h2>
+        <a href="{% url 'logout' %}">Logut</a><br/>
+        <a href="{% url 'card' user_id=patient_id %}">My Card</a><br/>
+        <a href="{% url 'select_doctor' %}">Get ticket</a>
+    </h2>
+
 </body>
 </html>

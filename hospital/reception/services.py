@@ -28,6 +28,10 @@ class DoctorService(ProcessUserInterface):
     def process(self):
         pass
 
+    def get_all(self):
+        return CustomUser.objects\
+            .filter(role=CustomUser.RoleChoices.DOCTOR).values('fio', 'id')
+
 
 class CreateUserService:
     _map: Dict[str, type(ProcessUserInterface)] = {
@@ -98,6 +102,16 @@ class ManyMedicalCardsService:
             'amount_of_diseases': owner_card['disease_count']
         }
             for owner_card in self._cards_info]
+
+
+class AppointmentDateTimeServoce:
+
+    def __init__(self, doctor_id):
+        self._selected_doctor = CustomUser.objects.get(id=doctor_id)
+
+    def get_dates(self):
+        pass
+
 
 
 class TmpService:
