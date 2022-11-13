@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>New disease</title>
+</head>
+<body>
+    <h2>
+        <a href="{% url user_role %}">Back to main... </a>
+    </h2>
+    <form action="" method="post">
+    {% csrf_token %}
+        <div class="forms">
+            <div class="labels">
+                <div>Name ::</div>
+                <div>Description ::</div>
+                <div>Drugs ::</div>
+                <div>Recommendations ::</div>
+                <div>Status ::</div>
+            </div>
+            <div class="fields">
+                <div>{{form.name}}<br/></div>
+                <div>{{form.description}}<br/></div>
+                <div>{{form.drugs}}<br/></div>
+                <div>{{form.recommendations}}<br/></div>
+                <div>{{form.status}}<br/></div>
+            </div>
+        </div>
+        <input type="submit" value="Submit">
+    </form>
+</body>
+</html>
+<style>
+.forms{
+    display: flex;
+    flex-wrap: wrap;
+}
+</style>

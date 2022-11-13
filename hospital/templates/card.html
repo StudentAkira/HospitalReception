@@ -15,6 +15,10 @@
     <br/>
 
     <h1>Card of patient : {{patient_fio}} </h1>
+    New disease :: <a href="{% url 'new_disease' user_id=patient_id %}">New disease</a>
+    <br/>
+    <br/>
+
     {% for item in diseases %}
         Disease name : {{ item.name }}<br/>
         Added at : {{ item.discovered_at }}<br/>
@@ -22,6 +26,5 @@
     <br/>
     <hr/>
     {% endfor %}
-
 </body>
 </html>

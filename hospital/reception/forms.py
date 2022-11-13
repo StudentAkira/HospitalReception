@@ -1,5 +1,5 @@
 from django import forms
-from reception.models import CustomUser
+from reception.models import CustomUser, Disease
 
 
 class RegisterForm(forms.ModelForm):
@@ -13,3 +13,9 @@ class RegisterForm(forms.ModelForm):
 class LoginForm(forms.Form):
     username = forms.CharField(required=True, max_length=127)
     password = forms.CharField(required=True, widget=forms.PasswordInput())
+
+
+class DiseaseForm(forms.ModelForm):
+    class Meta:
+        model = Disease
+        exclude = ['discovered_at', 'card']

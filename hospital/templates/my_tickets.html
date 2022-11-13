@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My tickets</title>
+</head>
+<body>
+    <h2>
+        <a href="{% url user_role %}">Back to main... </a>
+    </h2>
+    {% for ticket_data in tickets %}
+        time :: {{ ticket_data.receipt_time }}<br/>
+        doctor :: {{ ticket_data.target__fio }}<br/>
+        <hr/>
+    {% endfor %}
+</body>
+</html>

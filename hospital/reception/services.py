@@ -1,12 +1,12 @@
+from datetime import datetime, timezone, timedelta
 from django.contrib.auth import authenticate, login
 from typing import Dict
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.db.models import Count
-
-from reception.filters import PatientFilter
-from reception.forms import RegisterForm, LoginForm
-from reception.models import CustomUser, MedicalCard, Disease
+from reception.filters import PatientFilter, TicketFilter
+from reception.forms import RegisterForm, LoginForm, DiseaseForm
+from reception.models import CustomUser, MedicalCard, Disease, Ticket
 
 
 class ProcessUserInterface:
@@ -29,7 +29,7 @@ class DoctorService(ProcessUserInterface):
         pass
 
     def get_all(self):
-        return CustomUser.objects\
+        return CustomUser.objects \
             .filter(role=CustomUser.RoleChoices.DOCTOR).values('fio', 'id')
 
 
@@ -70,7 +70,7 @@ class LoginUserService:
             raise ValidationError('Invalid username or password')
 
 
-class MedicalCardContentService:
+class DiseaseService:
 
     def __init__(self, user: CustomUser):
         self._card = MedicalCard.objects.get(owner=user)
@@ -82,15 +82,20 @@ class MedicalCardContentService:
     def get_full_disease(self, disease_id) -> Disease:
         return self._diseases.get(id=disease_id)
 
+    def create_new_disease(self, form_data: DiseaseForm):
+        form_data = form_data.data.dict()
+        form_data.pop('csrfmiddlewaretoken', None)
+        new_disease = Disease.objects.create(**form_data, discovered_at=datetime.now(), card=self._card)
+        return new_disease.id
+
 
 class ManyMedicalCardsService:
     def __init__(self, request):
-
         self.patient_filtrator = PatientFilter(
             request.GET,
-            queryset=CustomUser.objects.prefetch_related('card_owner').
-                filter(role=CustomUser.RoleChoices.PATIENT).
-                annotate(disease_count=Count('card_owner__medical_card')),
+            queryset=CustomUser.objects.prefetch_related('card_owner') \
+                .filter(role=CustomUser.RoleChoices.PATIENT) \
+                .annotate(disease_count=Count('card_owner__medical_card')),
             request=request,
         )
         self._cards_info = self.patient_filtrator.qs.values('fio', 'id', 'disease_count')
@@ -104,14 +109,53 @@ class ManyMedicalCardsService:
             for owner_card in self._cards_info]
 
 
-class AppointmentDateTimeServoce:
+class TicketService:
 
-    def __init__(self, doctor_id):
-        self._selected_doctor = CustomUser.objects.get(id=doctor_id)
+    def __init__(self, user, doctor_id=None):
+        if doctor_id is not None:
+            self._selected_doctor = CustomUser.objects.get(id=doctor_id)
+        self.user = user
 
-    def get_dates(self):
-        pass
+    def get_accessible_dates(self, request):
+        ticket_filter_ = TicketFilter(
+            request.GET,
+            queryset=Ticket.objects.filter(target=self._selected_doctor),
+            request=request
+        )
+        accessible_dates = ticket_filter_.only_accessible()
 
+        return accessible_dates
+
+    def remove_old(self):
+        Ticket.objects.\
+            filter(owner=self.user, receipt_time__lt=datetime.now() - timedelta(minutes=30))
+
+    def get_ticket(self, month, day, hour, minute):
+
+        self.remove_old()
+
+        ticket_time = datetime.now().replace(
+            month=month,
+            day=day,
+            hour=hour,
+            minute=minute,
+            second=0,
+            microsecond=0,
+            tzinfo=timezone.utc
+        )
+
+        print(self.user)
+        amount_of_user_tickets = CustomUser.objects. \
+            filter(id=self.user.id).annotate(amount_of_tickets=Count('ticket_owner')). \
+            values_list('amount_of_tickets', flat=True)[0]
+
+        if amount_of_user_tickets < 3:
+            Ticket.objects.create(owner=self.user, target=self._selected_doctor, receipt_time=ticket_time)
+            return
+        raise IntegrityError
+
+    def get_my_tickets(self):
+        return Ticket.objects.prefetch_related('owner', 'target').filter(owner=self.user).values('receipt_time', 'target__fio')
 
 
 class TmpService:

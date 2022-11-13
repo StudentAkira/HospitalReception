@@ -1,22 +1,15 @@
+import datedelta as datedelta
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from reception.managers import CustomUserManager
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 class Ticket(models.Model):
 
-    class TicketTimeChoices(models.TextChoices):
-        FULL = 30, 'Full receipt'
-        FAST = 15, 'fast receipt receipt'
-
     owner = models.ForeignKey("CustomUser", on_delete=models.CASCADE, related_name="ticket_owner")
     target = models.ForeignKey("CustomUser", on_delete=models.CASCADE, related_name="ticket_target")
     receipt_time = models.DateTimeField(default=datetime.now())
-    receipt_type = models.IntegerField(
-        choices=TicketTimeChoices.choices,
-        default=TicketTimeChoices.FAST,
-    )
     objects = models.Manager()
 
 
@@ -30,13 +23,13 @@ class Disease(models.Model):
         REMISSION = 'REMISSION', 'Remission'
         FULL_REMISSION = 'FULL REMISSION', 'Full remission'
 
-    name = models.CharField(max_length=127)
-    description = models.CharField(max_length=511)
+    name = models.CharField(max_length=127, null=False)
+    description = models.CharField(max_length=511, null=False)
     drugs = models.CharField(max_length=1023)
-    recommendations = models.CharField(max_length=1023)
-    status = models.CharField(max_length=255, choices=StateChoices.choices)
-    discovered_at = models.DateTimeField(default=datetime.now())
-    card = models.ForeignKey("MedicalCard", on_delete=models.CASCADE, related_name="medical_card")
+    recommendations = models.CharField(max_length=1023, null=False)
+    status = models.CharField(max_length=255, choices=StateChoices.choices, null=False)
+    discovered_at = models.DateTimeField(default=datetime.now(), null=False)
+    card = models.ForeignKey("MedicalCard", on_delete=models.CASCADE, related_name="medical_card", null=False)
     objects = models.Manager()
 
 

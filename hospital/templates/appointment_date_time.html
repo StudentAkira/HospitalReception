@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dates</title>
+</head>
+<body>
+    <h2>
+        <a href="{% url user_role %}">Back to main... </a>
+    </h2>
+    {% for ticket in tickets %}
+        {{ ticket }}
+        <a href="{% url 'get_ticket' doctor_id=doctor_id month=ticket.month day=ticket.day hour=ticket.hour minute=ticket.minute %}"> GET </a>
+        <br/>
+        <br/>
+        <hr/>
+    {% endfor %}
+</body>
+</html>

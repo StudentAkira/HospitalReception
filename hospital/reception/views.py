@@ -1,13 +1,13 @@
 from django.contrib.auth import logout
 from django.core.exceptions import ValidationError
+from django.db import IntegrityError
+from django.http import HttpResponse
 from django.shortcuts import render, redirect
-
-from .filters import PatientFilter
 from .models import CustomUser, MedicalCard, Disease
 from .permissions import access_permission_role, unauthorized, authorized, card_owner_or_doctor
-from .forms import RegisterForm, LoginForm
-from .services import CreateUserService, LoginUserService, MedicalCardContentService, ManyMedicalCardsService, \
-    DoctorService, AppointmentDateTimeServoce
+from .forms import RegisterForm, LoginForm, DiseaseForm
+from .services import CreateUserService, LoginUserService, DiseaseService, ManyMedicalCardsService, \
+    DoctorService, TicketService
 
 
 @authorized
@@ -75,7 +75,6 @@ def patient_view(request):
         )
 
 
-
 @authorized
 @access_permission_role(CustomUser.RoleChoices.DOCTOR)
 def many_cards_view(request):
@@ -100,7 +99,7 @@ def card_content_view(request, user_id):
     if request.method == 'GET':
         try:
             user = CustomUser.objects.get(id=user_id)
-            service = MedicalCardContentService(user)
+            service = DiseaseService(user)
             diseases = service.get_diseases_short_data()
             return render(
                 template_name='card.html',
@@ -123,7 +122,7 @@ def disease_view(request, user_id, disease_id):
     if request.method == 'GET':
         try:
             user = CustomUser.objects.get(id=user_id)
-            service = MedicalCardContentService(user)
+            service = DiseaseService(user)
             disease = service.get_full_disease(disease_id)
             return render(
                 template_name='disease.html',
@@ -139,13 +138,31 @@ def disease_view(request, user_id, disease_id):
 
 
 @authorized
+@access_permission_role(CustomUser.RoleChoices.DOCTOR)
+def create_disease_view(request, user_id):
+    if request.method == 'GET':
+        form = DiseaseForm()
+        return render(request=request,
+                      template_name='new_disease.html',
+                      context={
+                            'user_role': request.user.role,
+                            'form': form,
+                      })
+    if request.method == 'POST':
+        form_data = DiseaseForm(request.POST)
+        service = DiseaseService(user_id)
+        disease_id = service.create_new_disease(form_data)
+        return redirect(f'/card/patient/{user_id}/disease/{disease_id}/')
+
+
+@authorized
 @access_permission_role(CustomUser.RoleChoices.PATIENT)
 def select_doctor_view(request):
     if request.method == 'GET':
         service = DoctorService(request)
         doctors = service.get_all()
         return render(
-            template_name='appointment.html',
+            template_name='appointment_doctors.html',
             request=request,
             context={
                 'user_role': request.user.role,
@@ -158,13 +175,42 @@ def select_doctor_view(request):
 @access_permission_role(CustomUser.RoleChoices.PATIENT)
 def select_datetime_view(request, doctor_id):
     if request.method == 'GET':
-        service = AppointmentDateTimeServoce(doctor_id)
-        doctors_fio = service.get_all()
+        service = TicketService(request.user, doctor_id)
+        tickets = service.get_accessible_dates(request)
         return render(
-            template_name='appointment.html',
+            template_name='appointment_date_time.html',
+            request=request,
+            context={
+                'doctor_id': doctor_id,
+                'user_role': request.user.role,
+                'tickets': tickets,
+            }
+        )
+
+
+@authorized
+@access_permission_role(CustomUser.RoleChoices.PATIENT)
+def get_ticket_view(request, doctor_id, month, day, hour, minute):
+    if request.method == 'GET':
+        try:
+            service = TicketService(request.user, doctor_id)
+            service.get_ticket(month, day, hour, minute)
+            return redirect('patient')
+        except IntegrityError:
+            return HttpResponse('Too many tickets for one user')
+
+
+@authorized
+@access_permission_role(CustomUser.RoleChoices.PATIENT)
+def get_my_tickets(request):
+    if request.method == 'GET':
+        service = TicketService(request.user)
+        tickets = service.get_my_tickets()
+        return render(
+            template_name='my_tickets.html',
             request=request,
             context={
                 'user_role': request.user.role,
-                'doctors_fio': doctors_fio,
+                'tickets': tickets,
             }
         )
