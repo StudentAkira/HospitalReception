@@ -18,6 +18,7 @@ def logout_view(request):
 
 @unauthorized
 def register_view(request):
+    print('test')
     if request.method == 'GET':
         form = RegisterForm()
         return render(template_name='register.html',
