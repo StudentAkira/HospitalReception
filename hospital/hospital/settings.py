@@ -21,7 +21,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-with open('keys.json', 'r+') as keys_file:
+with open('hospital/keys.json', 'r+') as keys_file:
     keys = ''.join([item.strip('\t').strip('\n') for item in keys_file.readlines()])
     keys = json.loads(keys)
 
