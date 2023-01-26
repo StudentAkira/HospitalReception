@@ -34,12 +34,10 @@
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
-    <property name="DatabaseDriversLRU" value="postgresql" />
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
-    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="SvnConfiguration">
     <configuration />
@@ -51,9 +49,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1673183461565</updated>
-      <workItem from="1673183463102" duration="177000" />
-      <workItem from="1673183732037" duration="10000" />
-      <workItem from="1674728444023" duration="3909000" />
+      <workItem from="1673183463102" duration="95000" />
     </task>
     <servers />
   </component>
@@ -70,16 +66,5 @@
         </entry>
       </map>
     </option>
-    <option name="oldMeFiltersMigrated" value="true" />
-  </component>
-  <component name="WindowStateProjectService">
-    <state x="1031" y="174" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1674743956212">
-      <screen x="0" y="0" width="1920" height="1032" />
-    </state>
-    <state x="1031" y="174" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1920.1032@0.0.1920.1032" timestamp="1674743956212" />
-    <state x="461" y="161" key="SettingsEditor" timestamp="1674743454293">
-      <screen x="0" y="0" width="1920" height="1032" />
-    </state>
-    <state x="461" y="161" key="SettingsEditor/0.0.1920.1032@0.0.1920.1032" timestamp="1674743454293" />
   </component>
 </project>

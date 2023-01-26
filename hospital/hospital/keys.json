@@ -1,8 +1,0 @@
-{
-	"secret_django_key":"django-insecure-f4wv((dv8=-g7(j(k&n#!3pjvba@iq2vvg^q(%!1@@xaa(!sl$",
-	"database_name": "hospital",
-	"database_user": "hospital_admin",
-	"database_password": "hospital_password",
-	"database_host": "127.0.0.1",
-	"database_port": "5432"
-}
